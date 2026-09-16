@@ -1,0 +1,499 @@
+/* One dark console theme. The js-snippets components read the generic
+   --fg/--muted/--border/--panel/--accent names and the status palette, so
+   defining them here themes every component at once. */
+
+:root {
+	color-scheme: dark;
+
+	--bg: #0b0d12;
+	--panel: #12151c;
+	--panel-2: #171b24;
+	--fg: #e8ecf4;
+	--muted: #8b93a7;
+	--border: #262c38;
+	--accent: #00e47a;
+
+	--success: #00e47a;
+	--running: #4ea8ff;
+	--warn: #f0a500;
+	--failure: #ff5c5c;
+	--skipped: #6b7280;
+
+	--mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
+
+	--perf-graph-bg: var(--panel-2);
+	--perf-graph-line: var(--accent);
+	--perf-graph-text: var(--muted);
+	--perf-graph-value: var(--fg);
+	--perf-graph-budget: var(--warn);
+
+	--timeline-bg: var(--panel-2);
+	--timeline-fg: var(--fg);
+	--timeline-muted: var(--muted);
+	--timeline-border: var(--border);
+	--timeline-accent: var(--accent);
+
+	--dag-bg: var(--panel-2);
+	--dag-fg: var(--fg);
+	--dag-muted: var(--muted);
+	--dag-border: var(--border);
+	--dag-accent: var(--accent);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--fg);
+	font: 14px/1.5 var(--mono);
+}
+
+h2,
+h3 {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+p {
+	margin: 0;
+	color: var(--muted);
+}
+
+ul {
+	margin: 0;
+	padding-left: 18px;
+}
+
+pre {
+	margin: 0;
+	font-family: inherit;
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+/* Header */
+
+.header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 16px;
+	padding: 10px 18px;
+	background: var(--panel);
+	border-bottom: 1px solid var(--border);
+	position: sticky;
+	top: 0;
+	z-index: 10;
+}
+
+.header.degraded {
+	border-bottom-color: var(--failure);
+}
+
+.header-identity {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.product {
+	font-weight: 600;
+}
+
+.header-target {
+	color: var(--muted);
+}
+
+.mode-badge {
+	padding: 2px 8px;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+}
+
+.mode-demo {
+	color: var(--warn);
+	border-color: var(--warn);
+}
+
+.mode-proxy {
+	color: var(--success);
+	border-color: var(--success);
+}
+
+.link-state {
+	padding: 2px 8px;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	font-size: 11px;
+	color: var(--muted);
+}
+
+.link-live {
+	color: var(--success);
+	border-color: var(--success);
+}
+
+.link-down {
+	color: var(--failure);
+	border-color: var(--failure);
+}
+
+.header-stats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 22px;
+	margin-left: auto;
+}
+
+.stat-label {
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--muted);
+}
+
+.stat-value {
+	font-size: 18px;
+	font-variant-numeric: tabular-nums;
+}
+
+.stat-note {
+	font-size: 11px;
+	color: var(--muted);
+}
+
+.stat.absent .stat-value {
+	color: var(--muted);
+}
+
+/* Layout */
+
+main {
+	display: grid;
+	gap: 16px;
+	padding: 16px 18px 40px;
+}
+
+.panel {
+	background: var(--panel);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	padding: 14px 16px 16px;
+	display: grid;
+	gap: 12px;
+}
+
+.panel-head {
+	display: grid;
+	gap: 4px;
+	max-width: 110ch;
+}
+
+.error-bar {
+	padding: 10px 18px;
+	background: color-mix(in srgb, var(--failure) 18%, var(--panel));
+	border-bottom: 1px solid var(--failure);
+	color: var(--fg);
+}
+
+.fatal {
+	padding: 14px 18px;
+	background: var(--failure);
+	color: #0b0d12;
+}
+
+.hidden {
+	display: none;
+}
+
+.empty,
+.notice {
+	color: var(--muted);
+	padding: 8px 0;
+}
+
+/* Gauges */
+
+.gauges {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 12px;
+}
+
+.gauge-card {
+	display: grid;
+	gap: 6px;
+	background: var(--panel-2);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	padding: 8px;
+}
+
+.gauge-hint,
+.gauge-missing {
+	font-size: 11px;
+	color: var(--muted);
+}
+
+.gauge-missing {
+	color: var(--warn);
+}
+
+.gauge-absent perf-graph {
+	opacity: 0.25;
+}
+
+/* Timeline */
+
+.timeline-host {
+	display: block;
+}
+
+.timeline {
+	display: block;
+	height: 280px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+}
+
+.tooltip {
+	display: grid;
+	gap: 3px;
+	min-width: 260px;
+}
+
+.tooltip-title {
+	font-weight: 600;
+}
+
+.tooltip-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.tooltip-label,
+.tooltip-foot {
+	color: var(--muted);
+}
+
+.tooltip-value {
+	font-variant-numeric: tabular-nums;
+}
+
+.tooltip-foot {
+	font-size: 11px;
+	padding-top: 4px;
+}
+
+/* Prefix cache */
+
+.cache-panel {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+	gap: 16px;
+	align-items: start;
+}
+
+@media (max-width: 1100px) {
+	.cache-panel {
+		grid-template-columns: 1fr;
+	}
+}
+
+.cache-left,
+.cache-right {
+	display: grid;
+	gap: 10px;
+	min-width: 0;
+}
+
+.cache-summary {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+	gap: 4px 24px;
+}
+
+.field {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+}
+
+.field-label {
+	color: var(--muted);
+	flex: 1;
+}
+
+.field-value {
+	font-variant-numeric: tabular-nums;
+}
+
+.tag {
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	padding: 1px 6px;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	color: var(--muted);
+}
+
+.tag-measured {
+	color: var(--success);
+	border-color: color-mix(in srgb, var(--success) 50%, var(--border));
+}
+
+.tag-inferred {
+	color: var(--warn);
+	border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+}
+
+.meter {
+	height: 12px;
+	background: var(--panel-2);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+.meter-fill {
+	height: 100%;
+	background: var(--success);
+	transition: width 250ms ease;
+}
+
+.meter[data-level="warn"] .meter-fill {
+	background: var(--warn);
+}
+
+.meter[data-level="critical"] .meter-fill {
+	background: var(--failure);
+}
+
+.meter-absent {
+	opacity: 0.4;
+}
+
+.meter-note {
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.cache-graph {
+	display: block;
+	height: 420px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+}
+
+.section-title {
+	display: grid;
+	gap: 2px;
+}
+
+.section-note {
+	font-size: 12px;
+}
+
+.lru-row {
+	display: grid;
+	grid-template-columns: 34px 1fr;
+	gap: 8px;
+	padding: 6px 0;
+	border-bottom: 1px solid var(--border);
+}
+
+.lru-rank {
+	color: var(--muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.lru-preview,
+.eviction-preview {
+	overflow-wrap: anywhere;
+}
+
+.lru-meta {
+	font-size: 11px;
+	color: var(--muted);
+}
+
+.eviction-row {
+	display: grid;
+	gap: 4px;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--border);
+}
+
+.eviction-head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.eviction-when {
+	color: var(--muted);
+	margin-left: auto;
+	font-variant-numeric: tabular-nums;
+}
+
+.reason {
+	padding: 1px 7px;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	font-size: 11px;
+}
+
+.reason-capacity_pressure,
+.reason-cache_flush_or_bulk_eviction {
+	color: var(--failure);
+	border-color: color-mix(in srgb, var(--failure) 50%, var(--border));
+}
+
+.reason-server_restart {
+	color: var(--warn);
+	border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+}
+
+.eviction-preview {
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.evidence {
+	font-size: 12px;
+	color: var(--muted);
+}
+
+/* Tables and feed */
+
+/* Both lists are unbounded feeds. Capping them keeps the page a screen or two
+   tall instead of one long scroll that buries the panels under it. */
+.requests-table,
+.feed {
+	display: block;
+	max-height: 560px;
+	overflow: auto;
+}
+
+.feed-message {
+	display: grid;
+	gap: 4px;
+}

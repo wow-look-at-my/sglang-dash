@@ -1,0 +1,14 @@
+{
+	"name": "sglang-dash-web",
+	"private": true,
+	"type": "module",
+	"description": "The dashboard UI. Built to web/dist, which the Go binary embeds.",
+	"scripts": {
+		"build": "node build.mjs",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"esbuild": "0.25.10",
+		"typescript": "5.9.3"
+	}
+}
