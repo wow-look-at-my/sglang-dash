@@ -56,8 +56,8 @@ export class Header {
 	setConnection(connected: boolean, detail: string): void {
 		this.linkText.textContent = detail;
 		this.link.className = `link-state ${connected ? "link-live" : "link-down"}`;
-		// In the LED's language a pulse means work in flight, so a live stream
-		// pulses green and a dropped one sits red and still.
+		// A pulse means work in flight in the LED's language, so a live stream
+		// pulses green and a dropped stream sits red and still.
 		if (connected) {
 			this.led.removeAttribute("state");
 			this.led.setAttribute("live", "");

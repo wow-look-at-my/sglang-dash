@@ -1,5 +1,5 @@
-// The request timeline: lanes by endpoint, bars by request, with the wait
-// before the first token and the decode after it drawn as separate segments.
+// The request timeline: lanes by endpoint, bars by request, with the wait that
+// ends at TTFT and the decode after it drawn as separate segments.
 //
 // The segment split is the point of the panel. A bar that is mostly hatched
 // waited; a bar that is mostly solid generated. Eviction and pressure events
