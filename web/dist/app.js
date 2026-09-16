@@ -1,3 +1,6 @@
+// src/main.ts
+import "https://sites.pazer.build/scratch_ui/branch/master/scratch-ui.js";
+
 // src/api.ts
 async function getJSON(path) {
   const resp = await fetch(path, { headers: { accept: "application/json" } });
@@ -86,10 +89,19 @@ function el(tag, className, text) {
   if (text !== void 0) node.textContent = text;
   return node;
 }
+function confidenceBadge(confidence) {
+  const badge = document.createElement("scratch-badge");
+  badge.setAttribute(
+    "variant",
+    confidence === "measured" ? "signal" : confidence === "inferred" ? "accent" : "off"
+  );
+  badge.textContent = confidence;
+  return badge;
+}
 function field(label, value, confidence) {
   const row = el("div", "field");
   row.append(el("span", "field-label", label), el("span", "field-value", value));
-  if (confidence) row.append(el("span", `tag tag-${confidence}`, confidence));
+  if (confidence) row.append(confidenceBadge(confidence));
   return row;
 }
 
@@ -99,7 +111,6 @@ var CachePanel = class {
   graph;
   summary;
   meter;
-  meterFill;
   meterNote;
   lruList;
   evictionList;
@@ -108,9 +119,8 @@ var CachePanel = class {
   constructor(root) {
     const left = el("div", "cache-left");
     this.summary = el("div", "cache-summary");
-    this.meter = el("div", "meter");
-    this.meterFill = el("div", "meter-fill");
-    this.meter.append(this.meterFill);
+    this.meter = document.createElement("scratch-progress");
+    this.meter.setAttribute("max", "100");
     this.meterNote = el("div", "meter-note", "");
     this.truncation = el("div", "notice", "");
     this.graph = document.createElement("dag-view");
@@ -171,14 +181,14 @@ var CachePanel = class {
     const usage = status.metrics.ok ? status.metrics.gauges.token_usage : void 0;
     if (usage === void 0 || !Number.isFinite(usage)) {
       this.meter.classList.add("meter-absent");
-      this.meterFill.style.width = "0%";
+      this.meter.setAttribute("value", "0");
       this.meterNote.textContent = status.metrics.ok ? "this server does not export token_usage, so how full the KV pool is cannot be read from here" : "the metrics scrape is failing, so pool occupancy is unknown";
       return;
     }
     this.meter.classList.remove("meter-absent");
     const pct = Math.max(0, Math.min(1, usage));
-    this.meterFill.style.width = `${(pct * 100).toFixed(1)}%`;
-    this.meter.dataset.level = pct >= 0.9 ? "critical" : pct >= 0.7 ? "warn" : "ok";
+    this.meter.setAttribute("value", (pct * 100).toFixed(1));
+    this.meter.setAttribute("state", pct >= 0.9 ? "danger" : pct >= 0.7 ? "accent" : "signal");
     this.meterNote.textContent = `KV pool ${percent(usage, 1)} full \u2014 ${count(status.metrics.gauges.used_tokens)} tokens held. ` + (pct >= 0.9 ? "At this level the server is evicting cached prefixes to admit new work." : "The cached prefixes below are safe while there is room.");
   }
   renderGraph(s) {
@@ -240,7 +250,7 @@ var CachePanel = class {
       const head = el("div", "eviction-head");
       head.append(
         el("span", `reason reason-${ev.reason}`, ev.reason.replace(/_/g, " ")),
-        el("span", `tag tag-${ev.confidence}`, ev.confidence),
+        confidenceBadge(ev.confidence),
         el("span", "eviction-when", clock(ev.time))
       );
       row.append(head);
@@ -487,10 +497,14 @@ var Header = class {
   constructor(root) {
     this.root = root;
     const left = el("div", "header-identity");
-    this.mode = el("span", "mode-badge", "starting");
+    this.mode = document.createElement("scratch-badge");
+    this.mode.textContent = "starting";
     this.target = el("span", "header-target", "");
     left.append(el("span", "product", "sglang-dash"), this.mode, this.target);
-    this.link = el("span", "link-state link-unknown", "connecting");
+    this.link = el("span", "link-state link-unknown");
+    this.led = document.createElement("scratch-led");
+    this.linkText = el("span", "", "connecting");
+    this.link.append(this.led, this.linkText);
     const right = el("div", "header-stats");
     for (const [key, label] of [
       ["running", "running"],
@@ -514,14 +528,23 @@ var Header = class {
   mode;
   target;
   link;
+  led;
+  linkText;
   stats = /* @__PURE__ */ new Map();
   setConnection(connected, detail) {
-    this.link.textContent = detail;
+    this.linkText.textContent = detail;
     this.link.className = `link-state ${connected ? "link-live" : "link-down"}`;
+    if (connected) {
+      this.led.removeAttribute("state");
+      this.led.setAttribute("live", "");
+    } else {
+      this.led.setAttribute("state", "bad");
+      this.led.removeAttribute("live");
+    }
   }
   update(status) {
     this.mode.textContent = status.mode;
-    this.mode.className = `mode-badge mode-${status.mode}`;
+    this.mode.setAttribute("variant", status.mode === "demo" ? "accent" : "signal");
     this.target.textContent = status.mode === "demo" ? "simulated traffic \u2014 nothing on this screen came from a model server" : `observing ${status.upstream ?? ABSENT}`;
     const g = status.metrics.gauges;
     const ok = status.metrics.ok;
@@ -653,7 +676,7 @@ var RequestsTable = class {
           el("div", "wf-label", cause.factor.replace(/_/g, " ")),
           bar,
           el("div", "wf-value", `${ms(cause.ms)} \xB7 ${percent(cause.share)}`),
-          el("div", `tag tag-${cause.confidence}`, cause.confidence)
+          confidenceBadge(cause.confidence)
         );
         box.append(rowEl, el("div", "wf-detail", cause.detail));
       }
@@ -785,29 +808,27 @@ function stat(label, value) {
   return box;
 }
 var DETAIL_STYLES = `
-.detail { display: grid; gap: 12px; padding: 12px 4px 16px; }
-.detail-head, .detail-context { display: flex; flex-wrap: wrap; gap: 18px; }
-.detail-stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-.detail-stat-value { font-size: 15px; font-variant-numeric: tabular-nums; }
-.detail-note { margin: 0; color: var(--muted); }
-.detail-error { margin: 0; color: var(--failure); }
-.wf-row { display: grid; grid-template-columns: 170px 1fr 150px 72px; gap: 10px; align-items: center; }
-.wf-bar { background: var(--panel-2); border-radius: 3px; height: 10px; overflow: hidden; }
-.wf-fill { height: 100%; background: var(--accent); }
-.wf-fill.wf-queue_wait { background: var(--warn); }
-.wf-fill.wf-prefill_uncached_tokens { background: var(--failure); }
-.wf-fill.wf-decode_contention { background: var(--warn); }
-.wf-fill.wf-unattributed { background: var(--muted); }
-.wf-value { text-align: right; font-variant-numeric: tabular-nums; }
-.wf-detail { grid-column: 1 / -1; color: var(--muted); font-size: 12px; margin: -2px 0 8px 180px; }
-.tag { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; padding: 2px 6px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
-.tag-measured { color: var(--success); border-color: var(--success); }
-.tag-inferred { color: var(--warn); border-color: var(--warn); }
-.status { padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); font-size: 11px; }
-.status-failed { color: var(--failure); border-color: var(--failure); }
-.status-in_flight { color: var(--running); border-color: var(--running); }
-.prompt { white-space: pre-wrap; background: var(--panel-2); padding: 10px; border-radius: 6px; max-height: 220px; overflow: auto; margin: 0; }
-.prompt-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.detail { display: grid; gap: var(--sp-3); padding: var(--sp-3) var(--sp-1) var(--sp-4); }
+.detail-head, .detail-context { display: flex; flex-wrap: wrap; gap: var(--sp-5); }
+.detail-stat-label { font-size: var(--fs-tiny); color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
+.detail-stat-value { font-size: var(--fs-lg); color: var(--text-bright); font-variant-numeric: tabular-nums; }
+.detail-note { margin: 0; color: var(--text-muted); font-size: var(--fs-small); }
+.detail-error { margin: 0; color: var(--danger); }
+.wf-row { display: grid; grid-template-columns: 180px 1fr 150px 84px; gap: var(--sp-2); align-items: center; }
+.wf-bar { background: var(--bg-elevated); border: 1px solid var(--border-light); height: 10px; overflow: hidden; }
+.wf-fill { height: 100%; background: var(--signal); }
+.wf-fill.wf-queue_wait { background: var(--accent); }
+.wf-fill.wf-prefill_uncached_tokens { background: var(--danger); }
+.wf-fill.wf-decode_contention { background: var(--accent-dim); }
+.wf-fill.wf-unattributed { background: var(--text-disabled); }
+.wf-value { text-align: right; font-variant-numeric: tabular-nums; font-size: var(--fs-small); }
+.wf-detail { grid-column: 1 / -1; color: var(--text-muted); font-size: var(--fs-tiny); margin: -2px 0 var(--sp-2) 188px; }
+.status { font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+.status-done { color: var(--signal); }
+.status-failed { color: var(--danger); }
+.status-in_flight { color: var(--accent); }
+.prompt { white-space: pre-wrap; background: var(--bg-elevated); border: 1px solid var(--border-light); padding: var(--sp-3); max-height: 220px; overflow: auto; margin: 0; font-size: var(--fs-small); }
+.prompt-label { font-size: var(--fs-tiny); color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; }
 `;
 
 // src/timeline.ts

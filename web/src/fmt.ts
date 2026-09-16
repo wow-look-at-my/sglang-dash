@@ -64,10 +64,25 @@ export function el<K extends keyof HTMLElementTagNameMap>(
 	return node;
 }
 
+/**
+ * A confidence chip. Measured is the signal colour because it came off the
+ * server; inferred is amber because it is the dashboard's own reasoning; the
+ * rest take the neutral dim chip.
+ */
+export function confidenceBadge(confidence: string): HTMLElement {
+	const badge = document.createElement("scratch-badge");
+	badge.setAttribute(
+		"variant",
+		confidence === "measured" ? "signal" : confidence === "inferred" ? "accent" : "off",
+	);
+	badge.textContent = confidence;
+	return badge;
+}
+
 /** A definition row: a label and a value, with the value's provenance. */
 export function field(label: string, value: string, confidence?: string): HTMLElement {
 	const row = el("div", "field");
 	row.append(el("span", "field-label", label), el("span", "field-value", value));
-	if (confidence) row.append(el("span", `tag tag-${confidence}`, confidence));
+	if (confidence) row.append(confidenceBadge(confidence));
 	return row;
 }

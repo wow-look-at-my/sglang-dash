@@ -5,6 +5,10 @@
 // committed, freshness-gated files is the intended long-term mechanism, and
 // these hand-written shims stand in until that generate step exists here.
 
+// The Scratch Proto bundle registers every scratch-* element as an import side
+// effect and exports nothing. The elements are driven by attributes alone.
+declare module "https://sites.pazer.build/scratch_ui/branch/master/scratch-ui.js";
+
 declare module "https://sites.pazer.build/js-snippets/branch/library/ui/perf-graph.js" {
 	export class PerfGraphElement extends HTMLElement {
 		push(value: number): void;

@@ -53,6 +53,12 @@ go-toolchain                                        # tests, vets and builds
 
 `web/dist` is committed because `go:embed` needs it at compile time. CI rebuilds it and fails on any difference. A stale asset cannot ship.
 
+## Theme
+
+The page wears [Scratch Proto](https://github.com/wow-look-at-my/scratch_ui), the org's design language: exposed wireframe, dot-grid substrate, monospace type, amber caution accents. Tokens and components are fetched from the library site at runtime, so an upstream change to the language reaches this dashboard with no work here.
+
+`app.css` carries no colour of its own. It aliases Scratch tokens onto the names the chart components read, so overriding a token on `:root` re-themes every panel at once.
+
 ## Documentation
 
 - [docs/architecture.md](docs/architecture.md) — the collectors and how they fit

@@ -1,43 +1,70 @@
-/* One dark console theme. The js-snippets components read the generic
-   --fg/--muted/--border/--panel/--accent names and the status palette, so
-   defining them here themes every component at once. */
+/* The dashboard's own styles, on top of the Scratch Proto design language.
+ *
+ * Every colour, font, space and duration below is a Scratch token. The block
+ * under :root is an alias layer, not a palette: the js-snippets components read
+ * generic names (--fg, --panel, --failure and the rest) and the canvas ones
+ * read their own --perf-graph-* / --timeline-* / --dag-* names, so pointing all
+ * of those at Scratch tokens themes every chart at once.
+ *
+ * Overriding a Scratch token on :root re-themes the whole page, components
+ * included, because custom properties inherit through shadow DOM. */
 
 :root {
 	color-scheme: dark;
 
-	--bg: #0b0d12;
-	--panel: #12151c;
-	--panel-2: #171b24;
-	--fg: #e8ecf4;
-	--muted: #8b93a7;
-	--border: #262c38;
-	--accent: #00e47a;
+	/* The generic names the js-snippets components fall back to. */
+	--fg: var(--text-bright);
+	--muted: var(--text-muted);
+	--panel: var(--bg-surface);
+	--panel-2: var(--bg-elevated);
 
-	--success: #00e47a;
-	--running: #4ea8ff;
-	--warn: #f0a500;
-	--failure: #ff5c5c;
-	--skipped: #6b7280;
+	/* The status palette those components read for state colour. */
+	--success: var(--signal);
+	--running: var(--accent);
+	--failure: var(--danger);
+	--skipped: var(--text-disabled);
+	--warn: var(--accent);
 
-	--mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", ui-monospace, monospace;
+	/* A canvas component paints its own background every frame and needs an
+	   opaque colour to keep subpixel text. Scratch's raised surfaces are
+	   translucent tints, so these take the substrate itself. */
+	--perf-graph-bg: var(--bg);
+	--perf-graph-line: var(--signal);
+	--perf-graph-fill: var(--signal-glow);
+	--perf-graph-grid: var(--grid-dot);
+	--perf-graph-text: var(--text-muted);
+	--perf-graph-value: var(--text-bright);
+	--perf-graph-budget: var(--accent);
+	--perf-graph-font: var(--font-mono);
 
-	--perf-graph-bg: var(--panel-2);
-	--perf-graph-line: var(--accent);
-	--perf-graph-text: var(--muted);
-	--perf-graph-value: var(--fg);
-	--perf-graph-budget: var(--warn);
-
-	--timeline-bg: var(--panel-2);
-	--timeline-fg: var(--fg);
-	--timeline-muted: var(--muted);
+	--timeline-bg: var(--bg);
+	--timeline-fg: var(--text-bright);
+	--timeline-muted: var(--text-muted);
 	--timeline-border: var(--border);
 	--timeline-accent: var(--accent);
+	--timeline-emphasis: var(--danger);
+	--timeline-font: var(--font-mono);
 
-	--dag-bg: var(--panel-2);
-	--dag-fg: var(--fg);
-	--dag-muted: var(--muted);
+	--dag-bg: var(--bg);
+	--dag-fg: var(--text-bright);
+	--dag-muted: var(--text-muted);
 	--dag-border: var(--border);
+	--dag-hairline: var(--border-light);
 	--dag-accent: var(--accent);
+	--dag-emphasis: var(--danger);
+	--dag-font: var(--font-mono);
+
+	--table-fg: var(--text-bright);
+	--table-muted: var(--text-muted);
+	--table-border: var(--border);
+	--table-panel: var(--bg-surface);
+	--table-accent: var(--accent);
+
+	--activity-fg: var(--text-bright);
+	--activity-muted: var(--text-muted);
+	--activity-border: var(--border);
+	--activity-panel: var(--bg-surface);
+	--activity-accent: var(--accent);
 }
 
 * {
@@ -46,27 +73,51 @@
 
 body {
 	margin: 0;
-	background: var(--bg);
-	color: var(--fg);
-	font: 14px/1.5 var(--mono);
+	background: var(--bg-deep);
+	color: var(--text);
+	font: var(--fs-body) / 1.5 var(--font-mono);
+}
+
+/* The dot grid and the scanline are the design language's substrate. They sit
+   in their own fixed layer, so no panel has to carry a background image. */
+.substrate {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	background-image:
+		var(--scanline),
+		radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0);
+	background-size:
+		auto,
+		var(--grid-size) var(--grid-size);
+}
+
+header,
+main {
+	position: relative;
+	z-index: 1;
 }
 
 h2,
 h3 {
 	margin: 0;
-	font-size: 15px;
-	font-weight: 600;
-	letter-spacing: 0.01em;
+	font-family: var(--font-display);
+	font-size: var(--fs-h3);
+	font-weight: 500;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
 }
 
 p {
 	margin: 0;
-	color: var(--muted);
+	color: var(--text-muted);
+	font-size: var(--fs-small);
 }
 
 ul {
 	margin: 0;
-	padding-left: 18px;
+	padding-left: var(--sp-4);
 }
 
 pre {
@@ -80,6 +131,7 @@ a {
 }
 
 a:hover {
+	color: var(--accent-hover);
 	text-decoration: underline;
 }
 
@@ -89,9 +141,9 @@ a:hover {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 16px;
-	padding: 10px 18px;
-	background: var(--panel);
+	gap: var(--sp-4);
+	padding: var(--sp-3) var(--sp-5);
+	background: var(--bg);
 	border-bottom: 1px solid var(--border);
 	position: sticky;
 	top: 0;
@@ -99,122 +151,141 @@ a:hover {
 }
 
 .header.degraded {
-	border-bottom-color: var(--failure);
+	border-bottom-color: var(--danger);
 }
 
 .header-identity {
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	gap: var(--sp-2);
 }
 
 .product {
-	font-weight: 600;
+	font-family: var(--font-display);
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--text-bright);
 }
 
 .header-target {
-	color: var(--muted);
+	color: var(--text-muted);
+	font-size: var(--fs-small);
 }
 
-.mode-badge {
-	padding: 2px 8px;
-	border-radius: 999px;
-	border: 1px solid var(--border);
-	font-size: 11px;
-	text-transform: uppercase;
-	letter-spacing: 0.08em;
-}
-
-.mode-demo {
-	color: var(--warn);
-	border-color: var(--warn);
-}
-
-.mode-proxy {
-	color: var(--success);
-	border-color: var(--success);
-}
-
+/* The mode chip and the connection dot are Scratch components, so they need
+   no colour rules here. The link text alongside the dot does. */
 .link-state {
-	padding: 2px 8px;
-	border-radius: 999px;
-	border: 1px solid var(--border);
-	font-size: 11px;
-	color: var(--muted);
+	display: flex;
+	align-items: center;
+	gap: var(--sp-1);
+	font-size: var(--fs-micro);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text-muted);
 }
 
 .link-live {
-	color: var(--success);
-	border-color: var(--success);
+	color: var(--signal);
 }
 
 .link-down {
-	color: var(--failure);
-	border-color: var(--failure);
+	color: var(--danger);
 }
 
 .header-stats {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 22px;
+	gap: var(--sp-5);
 	margin-left: auto;
 }
 
 .stat-label {
-	font-size: 10px;
+	font-size: var(--fs-micro);
 	text-transform: uppercase;
-	letter-spacing: 0.08em;
-	color: var(--muted);
+	letter-spacing: 0.1em;
+	color: var(--text-muted);
 }
 
 .stat-value {
-	font-size: 18px;
+	font-size: var(--fs-lg);
+	color: var(--text-bright);
 	font-variant-numeric: tabular-nums;
 }
 
 .stat-note {
-	font-size: 11px;
-	color: var(--muted);
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
 }
 
 .stat.absent .stat-value {
-	color: var(--muted);
+	color: var(--text-disabled);
 }
 
 /* Layout */
 
 main {
 	display: grid;
-	gap: 16px;
-	padding: 16px 18px 40px;
+	gap: var(--sp-4);
+	padding: var(--sp-4) var(--sp-5) var(--sp-7);
 }
 
+/* Panels take the wireframe treatment: a hairline box, square by the system's
+   radius rule, with a registration mark at opposite corners. */
 .panel {
-	background: var(--panel);
+	position: relative;
+	background: var(--bg-surface);
 	border: 1px solid var(--border);
-	border-radius: 8px;
-	padding: 14px 16px 16px;
+	border-radius: var(--r-base);
+	padding: var(--pad-card);
 	display: grid;
-	gap: 12px;
+	gap: var(--sp-3);
+}
+
+.panel::before,
+.panel::after {
+	content: "";
+	position: absolute;
+	width: 6px;
+	height: 6px;
+	border-color: var(--accent-dim);
+	border-style: solid;
+	pointer-events: none;
+}
+
+.panel::before {
+	top: -1px;
+	left: -1px;
+	border-width: 1px 0 0 1px;
+}
+
+.panel::after {
+	right: -1px;
+	bottom: -1px;
+	border-width: 0 1px 1px 0;
 }
 
 .panel-head {
 	display: grid;
-	gap: 4px;
+	gap: var(--sp-1);
 	max-width: 110ch;
 }
 
 .error-bar {
-	padding: 10px 18px;
-	background: color-mix(in srgb, var(--failure) 18%, var(--panel));
-	border-bottom: 1px solid var(--failure);
-	color: var(--fg);
+	position: relative;
+	z-index: 1;
+	padding: var(--sp-3) var(--sp-5);
+	background: var(--danger-glow);
+	border-bottom: 1px solid var(--danger);
+	color: var(--text-bright);
 }
 
 .fatal {
-	padding: 14px 18px;
-	background: var(--failure);
-	color: #0b0d12;
+	position: relative;
+	z-index: 2;
+	padding: var(--sp-3) var(--sp-5);
+	background: var(--danger);
+	color: var(--bg-deep);
 }
 
 .hidden {
@@ -223,35 +294,35 @@ main {
 
 .empty,
 .notice {
-	color: var(--muted);
-	padding: 8px 0;
+	color: var(--text-muted);
+	font-size: var(--fs-small);
+	padding: var(--sp-2) 0;
 }
 
 /* Gauges */
 
 .gauges {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: var(--sp-3);
 }
 
 .gauge-card {
 	display: grid;
-	gap: 6px;
-	background: var(--panel-2);
-	border: 1px solid var(--border);
-	border-radius: 6px;
-	padding: 8px;
+	gap: var(--sp-1);
+	background: var(--bg-elevated);
+	border: 1px solid var(--border-light);
+	padding: var(--sp-2);
 }
 
 .gauge-hint,
 .gauge-missing {
-	font-size: 11px;
-	color: var(--muted);
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
 }
 
 .gauge-missing {
-	color: var(--warn);
+	color: var(--accent);
 }
 
 .gauge-absent perf-graph {
@@ -268,28 +339,29 @@ main {
 	display: block;
 	height: 280px;
 	border: 1px solid var(--border);
-	border-radius: 6px;
 }
 
 .tooltip {
 	display: grid;
 	gap: 3px;
 	min-width: 260px;
+	font-size: var(--fs-small);
 }
 
 .tooltip-title {
-	font-weight: 600;
+	font-family: var(--font-display);
+	color: var(--text-bright);
 }
 
 .tooltip-row {
 	display: flex;
 	justify-content: space-between;
-	gap: 16px;
+	gap: var(--sp-4);
 }
 
 .tooltip-label,
 .tooltip-foot {
-	color: var(--muted);
+	color: var(--text-muted);
 }
 
 .tooltip-value {
@@ -297,8 +369,8 @@ main {
 }
 
 .tooltip-foot {
-	font-size: 11px;
-	padding-top: 4px;
+	font-size: var(--fs-tiny);
+	padding-top: var(--sp-1);
 }
 
 /* Prefix cache */
@@ -306,7 +378,7 @@ main {
 .cache-panel {
 	display: grid;
 	grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
-	gap: 16px;
+	gap: var(--sp-4);
 	align-items: start;
 }
 
@@ -319,108 +391,71 @@ main {
 .cache-left,
 .cache-right {
 	display: grid;
-	gap: 10px;
+	gap: var(--sp-2);
 	min-width: 0;
 }
 
 .cache-summary {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-	gap: 4px 24px;
+	gap: var(--sp-1) var(--sp-5);
 }
 
 .field {
 	display: flex;
 	align-items: baseline;
-	gap: 8px;
+	gap: var(--sp-2);
+	font-size: var(--fs-small);
 }
 
 .field-label {
-	color: var(--muted);
+	color: var(--text-muted);
 	flex: 1;
 }
 
 .field-value {
+	color: var(--text-bright);
 	font-variant-numeric: tabular-nums;
 }
 
-.tag {
-	font-size: 10px;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	padding: 1px 6px;
-	border-radius: 999px;
-	border: 1px solid var(--border);
-	color: var(--muted);
-}
-
-.tag-measured {
-	color: var(--success);
-	border-color: color-mix(in srgb, var(--success) 50%, var(--border));
-}
-
-.tag-inferred {
-	color: var(--warn);
-	border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
-}
-
-.meter {
-	height: 12px;
-	background: var(--panel-2);
-	border: 1px solid var(--border);
-	border-radius: 999px;
-	overflow: hidden;
-}
-
-.meter-fill {
-	height: 100%;
-	background: var(--success);
-	transition: width 250ms ease;
-}
-
-.meter[data-level="warn"] .meter-fill {
-	background: var(--warn);
-}
-
-.meter[data-level="critical"] .meter-fill {
-	background: var(--failure);
-}
-
+/* Confidence is a <scratch-badge>, so its chip geometry and colour come from
+   the design language. Only its placement is this stylesheet's business. */
 .meter-absent {
 	opacity: 0.4;
 }
 
 .meter-note {
-	font-size: 12px;
-	color: var(--muted);
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
 }
 
 .cache-graph {
 	display: block;
 	height: 420px;
 	border: 1px solid var(--border);
-	border-radius: 6px;
 }
 
 .section-title {
 	display: grid;
 	gap: 2px;
+	padding-top: var(--sp-2);
 }
 
 .section-note {
-	font-size: 12px;
+	font-size: var(--fs-tiny);
 }
 
 .lru-row {
 	display: grid;
 	grid-template-columns: 34px 1fr;
-	gap: 8px;
-	padding: 6px 0;
-	border-bottom: 1px solid var(--border);
+	gap: var(--sp-2);
+	padding: var(--sp-2) 0;
+	border-bottom: 1px dashed var(--border-dashed);
+	font-size: var(--fs-small);
 }
 
 .lru-rank {
-	color: var(--muted);
+	color: var(--accent);
 	font-variant-numeric: tabular-nums;
 }
 
@@ -430,56 +465,60 @@ main {
 }
 
 .lru-meta {
-	font-size: 11px;
-	color: var(--muted);
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
 }
 
 .eviction-row {
 	display: grid;
-	gap: 4px;
-	padding: 8px 0;
-	border-bottom: 1px solid var(--border);
+	gap: var(--sp-1);
+	padding: var(--sp-2) 0;
+	border-bottom: 1px dashed var(--border-dashed);
 }
 
 .eviction-head {
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: var(--sp-2);
 	flex-wrap: wrap;
 }
 
 .eviction-when {
-	color: var(--muted);
+	color: var(--text-muted);
 	margin-left: auto;
+	font-size: var(--fs-tiny);
 	font-variant-numeric: tabular-nums;
 }
 
 .reason {
-	padding: 1px 7px;
-	border-radius: 999px;
-	border: 1px solid var(--border);
-	font-size: 11px;
+	font-size: var(--fs-micro);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--text-muted);
 }
 
 .reason-capacity_pressure,
 .reason-cache_flush_or_bulk_eviction {
-	color: var(--failure);
-	border-color: color-mix(in srgb, var(--failure) 50%, var(--border));
+	color: var(--danger);
 }
 
-.reason-server_restart {
-	color: var(--warn);
-	border-color: color-mix(in srgb, var(--warn) 50%, var(--border));
+.reason-server_restart,
+.reason-contention_with_running_batch {
+	color: var(--accent);
+}
+
+.eviction-body {
+	font-size: var(--fs-small);
 }
 
 .eviction-preview {
-	font-size: 12px;
-	color: var(--muted);
+	font-size: var(--fs-small);
+	color: var(--text-muted);
 }
 
 .evidence {
-	font-size: 12px;
-	color: var(--muted);
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
 }
 
 /* Tables and feed */
@@ -495,5 +534,5 @@ main {
 
 .feed-message {
 	display: grid;
-	gap: 4px;
+	gap: var(--sp-1);
 }

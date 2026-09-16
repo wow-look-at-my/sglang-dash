@@ -14,15 +14,23 @@ export class Header {
 	private readonly mode: HTMLElement;
 	private readonly target: HTMLElement;
 	private readonly link: HTMLElement;
+	private readonly led: HTMLElement;
+	private readonly linkText: HTMLElement;
 	private readonly stats = new Map<string, Stat>();
 
 	constructor(private readonly root: HTMLElement) {
 		const left = el("div", "header-identity");
-		this.mode = el("span", "mode-badge", "starting");
+		// The mode chip and the connection dot are Scratch Proto components, so
+		// they carry the design language's own chip and LED treatment.
+		this.mode = document.createElement("scratch-badge");
+		this.mode.textContent = "starting";
 		this.target = el("span", "header-target", "");
 		left.append(el("span", "product", "sglang-dash"), this.mode, this.target);
 
-		this.link = el("span", "link-state link-unknown", "connecting");
+		this.link = el("span", "link-state link-unknown");
+		this.led = document.createElement("scratch-led");
+		this.linkText = el("span", "", "connecting");
+		this.link.append(this.led, this.linkText);
 		const right = el("div", "header-stats");
 		for (const [key, label] of [
 			["running", "running"],
@@ -46,13 +54,23 @@ export class Header {
 	}
 
 	setConnection(connected: boolean, detail: string): void {
-		this.link.textContent = detail;
+		this.linkText.textContent = detail;
 		this.link.className = `link-state ${connected ? "link-live" : "link-down"}`;
+		// In the LED's language a pulse means work in flight, so a live stream
+		// pulses green and a dropped one sits red and still.
+		if (connected) {
+			this.led.removeAttribute("state");
+			this.led.setAttribute("live", "");
+		} else {
+			this.led.setAttribute("state", "bad");
+			this.led.removeAttribute("live");
+		}
 	}
 
 	update(status: Status): void {
 		this.mode.textContent = status.mode;
-		this.mode.className = `mode-badge mode-${status.mode}`;
+		// Amber reads as caution, which is what fabricated traffic is.
+		this.mode.setAttribute("variant", status.mode === "demo" ? "accent" : "signal");
 		this.target.textContent =
 			status.mode === "demo"
 				? "simulated traffic — nothing on this screen came from a model server"

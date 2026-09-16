@@ -33,4 +33,8 @@ A gauge the server does not export is reported in `Snapshot.Missing`. The panel 
 
 ## Assets
 
-`main.go` embeds `web/dist` with `go:embed`. The UI source lives in `web/src` and is compiled by esbuild through `web/build.mjs`. The js-snippets components stay as runtime URL imports. The browser fetches those from the library site, so an upstream fix reaches this dashboard without a re-vendor here.
+`main.go` embeds `web/dist` with `go:embed`. The UI source lives in `web/src` and is compiled by esbuild through `web/build.mjs`.
+
+The libraries stay as runtime URL imports rather than being vendored. The js-snippets components supply the charts, the table and the feed. `scratch_ui` supplies Scratch Proto, the design language: `index.html` links its stylesheet for the tokens on `:root`, and `main.ts` imports its module for the components. The browser fetches both from the library site, so an upstream fix reaches this dashboard without a re-vendor here.
+
+`app.css` holds no colour of its own. Its `:root` block aliases Scratch tokens onto the generic names the chart components read, so one token override re-themes every panel.

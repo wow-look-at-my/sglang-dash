@@ -18,7 +18,15 @@ An observability dashboard for an SGLang server. One Go binary with the UI embed
 - `internal/requests`, `internal/events` — the request ring and the event bus.
 - `internal/api` — the `Hub` every collector writes into, plus the HTTP surface.
 - `internal/demo` — the traffic simulator behind `-demo`.
-- `web/src` — the UI. Components come from js-snippets as runtime URL imports.
+- `web/src` — the UI. Charts come from js-snippets and the theme from `scratch_ui`, both as runtime URL imports.
+
+## Theme
+
+The page wears Scratch Proto, the org's design language, from `wow-look-at-my/scratch_ui`. `index.html` links `scratch-ui.css` for the tokens on `:root` and `main.ts` imports `scratch-ui.js` for the components. Both are needed, and both are fetched from the library site at runtime.
+
+- Never import `scratch-proto.css`. It restyles elements globally and exists for that repo's own spec pages.
+- `app.css` holds no colour of its own. Its `:root` block aliases Scratch tokens onto the names the js-snippets components read, so one token override re-themes every chart.
+- A canvas component needs an opaque background for subpixel text, and the raised Scratch surfaces are translucent tints. `--timeline-bg`, `--dag-bg` and `--perf-graph-bg` therefore take `--bg`, never `--bg-surface`.
 
 ## Invariants
 

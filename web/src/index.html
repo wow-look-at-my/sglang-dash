@@ -4,6 +4,10 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>sglang-dash</title>
+		<!-- Scratch Proto's tokens land on :root here, where they inherit into
+		     every shadow root and theme the components. The module in app.js
+		     imports the same file again for the rules inside those roots. -->
+		<link rel="stylesheet" href="https://sites.pazer.build/scratch_ui/branch/master/scratch-ui.css" />
 		<link rel="stylesheet" href="./app.css" />
 		<link
 			rel="icon"
@@ -11,6 +15,7 @@
 		/>
 	</head>
 	<body>
+		<div class="substrate" aria-hidden="true"></div>
 		<header id="header" class="header"></header>
 		<div id="error-bar" class="error-bar hidden"></div>
 

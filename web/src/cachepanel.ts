@@ -14,7 +14,7 @@ import type {
 	DagViewElement,
 } from "https://sites.pazer.build/js-snippets/branch/library/ui/dag-view.js";
 
-import { ABSENT, age, clock, count, el, field, ms, percent } from "./fmt.js";
+import { ABSENT, age, clock, confidenceBadge, count, el, field, ms, percent } from "./fmt.js";
 import type { CacheNode, CacheSnapshot, Eviction, Status } from "./types.js";
 
 /** How many nodes the graph draws before it stops adding cold ones. */
@@ -24,7 +24,6 @@ export class CachePanel {
 	private readonly graph: DagViewElement;
 	private readonly summary: HTMLElement;
 	private readonly meter: HTMLElement;
-	private readonly meterFill: HTMLElement;
 	private readonly meterNote: HTMLElement;
 	private readonly lruList: HTMLElement;
 	private readonly evictionList: HTMLElement;
@@ -34,9 +33,10 @@ export class CachePanel {
 	constructor(root: HTMLElement) {
 		const left = el("div", "cache-left");
 		this.summary = el("div", "cache-summary");
-		this.meter = el("div", "meter");
-		this.meterFill = el("div", "meter-fill");
-		this.meter.append(this.meterFill);
+		// The pool meter is a <scratch-progress>: it already carries the
+		// design language's bar geometry and its accent/signal/danger states.
+		this.meter = document.createElement("scratch-progress");
+		this.meter.setAttribute("max", "100");
 		this.meterNote = el("div", "meter-note", "");
 		this.truncation = el("div", "notice", "");
 		this.graph = document.createElement("dag-view") as DagViewElement;
@@ -106,7 +106,7 @@ export class CachePanel {
 		const usage = status.metrics.ok ? status.metrics.gauges.token_usage : undefined;
 		if (usage === undefined || !Number.isFinite(usage)) {
 			this.meter.classList.add("meter-absent");
-			this.meterFill.style.width = "0%";
+			this.meter.setAttribute("value", "0");
 			this.meterNote.textContent = status.metrics.ok
 				? "this server does not export token_usage, so how full the KV pool is cannot be read from here"
 				: "the metrics scrape is failing, so pool occupancy is unknown";
@@ -114,8 +114,8 @@ export class CachePanel {
 		}
 		this.meter.classList.remove("meter-absent");
 		const pct = Math.max(0, Math.min(1, usage));
-		this.meterFill.style.width = `${(pct * 100).toFixed(1)}%`;
-		this.meter.dataset.level = pct >= 0.9 ? "critical" : pct >= 0.7 ? "warn" : "ok";
+		this.meter.setAttribute("value", (pct * 100).toFixed(1));
+		this.meter.setAttribute("state", pct >= 0.9 ? "danger" : pct >= 0.7 ? "accent" : "signal");
 		this.meterNote.textContent =
 			`KV pool ${percent(usage, 1)} full — ${count(status.metrics.gauges.used_tokens)} tokens held. ` +
 			(pct >= 0.9
@@ -196,7 +196,7 @@ export class CachePanel {
 			const head = el("div", "eviction-head");
 			head.append(
 				el("span", `reason reason-${ev.reason}`, ev.reason.replace(/_/g, " ")),
-				el("span", `tag tag-${ev.confidence}`, ev.confidence),
+				confidenceBadge(ev.confidence),
 				el("span", "eviction-when", clock(ev.time)),
 			);
 			row.append(head);

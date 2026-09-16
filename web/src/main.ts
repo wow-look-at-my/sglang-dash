@@ -6,6 +6,10 @@
 // both are whole collections and a delta protocol for them would buy nothing
 // at this size.
 
+// Registering every scratch-* component is a side effect of this import. The
+// tokens it styles them with come from the stylesheet the page links.
+import "https://sites.pazer.build/scratch_ui/branch/master/scratch-ui.js";
+
 import { api, openFeed } from "./api.js";
 import { CachePanel } from "./cachepanel.js";
 import { el } from "./fmt.js";
