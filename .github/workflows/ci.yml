@@ -23,7 +23,8 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: web/package-lock.json
-      - uses: wow-look-at-my/actions@typescript#latest
+      - name: Rebuild web/dist and fail if the committed copy differs
+        uses: wow-look-at-my/actions@typescript#latest
         with:
           script: |
             await $`npm ci`.cwd('web');
