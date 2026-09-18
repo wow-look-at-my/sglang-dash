@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+  checks: read
+  deployments: write
+  artifact-metadata: write
+
+jobs:
+  # web/dist is committed for go:embed, so a rebuild here catches a stale one.
+  assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Rebuild web/dist and fail if the committed copy differs
+        uses: wow-look-at-my/actions@typescript#latest
+        with:
+          script: |
+            await $`npm ci`.cwd('web');
+            await $`npm run typecheck`.cwd('web');
+            await $`npm run build`.cwd('web');
+            const diff = await $`git status --porcelain web/dist`.silent();
+            const dirty = String(diff).trim();
+            if (dirty !== '') {
+              core.setFailed(
+                `web/dist does not match what web/src builds:\n${dirty}\n` +
+                  'Run `npm --prefix web run build` and commit the result.',
+              );
+            }
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: wow-look-at-my/go-toolchain@master

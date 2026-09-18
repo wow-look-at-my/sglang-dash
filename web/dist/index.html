@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>sglang-dash</title>
+		<!-- Scratch Proto's tokens land on :root here, where they inherit into
+		     every shadow root and theme the components. The module in app.js
+		     imports the same file again for the rules inside those roots. -->
+		<link rel="stylesheet" href="https://sites.pazer.build/scratch_ui/branch/master/scratch-ui.css" />
+		<link rel="stylesheet" href="./app.css" />
+		<link
+			rel="icon"
+			href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%230d0f14'/><path d='M3 11l3-4 3 2 4-6' stroke='%2300e47a' stroke-width='1.6' fill='none'/></svg>"
+		/>
+	</head>
+	<body>
+		<div class="substrate" aria-hidden="true"></div>
+		<header id="header" class="header"></header>
+		<div id="error-bar" class="error-bar hidden"></div>
+
+		<main>
+			<section class="panel">
+				<div class="panel-head">
+					<h2>Server gauges</h2>
+					<p>
+						Scraped from the server's own Prometheus endpoint. A gauge the server does not export says
+						so rather than drawing a flat zero.
+					</p>
+				</div>
+				<div id="gauges" class="gauges"></div>
+			</section>
+
+			<section class="panel">
+				<div class="panel-head">
+					<h2>Requests over time</h2>
+					<p>
+						One bar per proxied request. The hatched head is everything before the first token — queueing
+						and prefill; the solid tail is decode. Colour is how much of the prompt came from the prefix
+						cache. Dashed lines mark evictions and pressure. Click a bar to open its attribution.
+					</p>
+				</div>
+				<div id="timeline" class="timeline-host"></div>
+			</section>
+
+			<section class="panel">
+				<div class="panel-head">
+					<h2>Prefix cache</h2>
+					<p>
+						Reconstructed from the prompts flowing through the proxy and the cached-token counts the
+						server reports back. SGLang's radix cache has no TTL: a prefix lives until the pool is full
+						and it is the least recently used, so the panel reports idle time and eviction rank instead
+						of a countdown.
+					</p>
+				</div>
+				<div id="cache" class="cache-panel"></div>
+			</section>
+
+			<section class="panel">
+				<div class="panel-head">
+					<h2>Requests</h2>
+					<p>Open a row for the latency waterfall: where the time went, and how much of that is measured.</p>
+				</div>
+				<div id="requests"></div>
+			</section>
+
+			<section class="panel">
+				<div class="panel-head">
+					<h2>Activity</h2>
+					<p>Everything the collectors saw, newest first.</p>
+				</div>
+				<div id="feed"></div>
+			</section>
+		</main>
+
+		<script type="module" src="./app.js"></script>
+	</body>
+</html>

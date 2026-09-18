@@ -1,0 +1,538 @@
+/* The dashboard's own styles, on top of the Scratch Proto design language.
+ *
+ * Every colour, font, space and duration below is a Scratch token. The block
+ * under :root is an alias layer, not a palette: the js-snippets components read
+ * generic names (--fg, --panel, --failure and the rest) and the canvas ones
+ * read their own --perf-graph-* / --timeline-* / --dag-* names, so pointing all
+ * of those at Scratch tokens themes every chart at once.
+ *
+ * Overriding a Scratch token on :root re-themes the whole page, components
+ * included, because custom properties inherit through shadow DOM. */
+
+:root {
+	color-scheme: dark;
+
+	/* The generic names the js-snippets components fall back to. */
+	--fg: var(--text-bright);
+	--muted: var(--text-muted);
+	--panel: var(--bg-surface);
+	--panel-2: var(--bg-elevated);
+
+	/* The status palette those components read for state colour. */
+	--success: var(--signal);
+	--running: var(--accent);
+	--failure: var(--danger);
+	--skipped: var(--text-disabled);
+	--warn: var(--accent);
+
+	/* A canvas component paints its own background every frame and needs an
+	   opaque colour to keep subpixel text. Scratch's raised surfaces are
+	   translucent tints, so these take the substrate itself. */
+	--perf-graph-bg: var(--bg);
+	--perf-graph-line: var(--signal);
+	--perf-graph-fill: var(--signal-glow);
+	--perf-graph-grid: var(--grid-dot);
+	--perf-graph-text: var(--text-muted);
+	--perf-graph-value: var(--text-bright);
+	--perf-graph-budget: var(--accent);
+	--perf-graph-font: var(--font-mono);
+
+	--timeline-bg: var(--bg);
+	--timeline-fg: var(--text-bright);
+	--timeline-muted: var(--text-muted);
+	--timeline-border: var(--border);
+	--timeline-accent: var(--accent);
+	--timeline-emphasis: var(--danger);
+	--timeline-font: var(--font-mono);
+
+	--dag-bg: var(--bg);
+	--dag-fg: var(--text-bright);
+	--dag-muted: var(--text-muted);
+	--dag-border: var(--border);
+	--dag-hairline: var(--border-light);
+	--dag-accent: var(--accent);
+	--dag-emphasis: var(--danger);
+	--dag-font: var(--font-mono);
+
+	--table-fg: var(--text-bright);
+	--table-muted: var(--text-muted);
+	--table-border: var(--border);
+	--table-panel: var(--bg-surface);
+	--table-accent: var(--accent);
+
+	--activity-fg: var(--text-bright);
+	--activity-muted: var(--text-muted);
+	--activity-border: var(--border);
+	--activity-panel: var(--bg-surface);
+	--activity-accent: var(--accent);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg-deep);
+	color: var(--text);
+	font: var(--fs-body) / 1.5 var(--font-mono);
+}
+
+/* The dot grid and the scanline are the design language's substrate. They sit
+   in their own fixed layer, so no panel has to carry a background image. */
+.substrate {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+	pointer-events: none;
+	background-image:
+		var(--scanline),
+		radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0);
+	background-size:
+		auto,
+		var(--grid-size) var(--grid-size);
+}
+
+header,
+main {
+	position: relative;
+	z-index: 1;
+}
+
+h2,
+h3 {
+	margin: 0;
+	font-family: var(--font-display);
+	font-size: var(--fs-h3);
+	font-weight: 500;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+p {
+	margin: 0;
+	color: var(--text-muted);
+	font-size: var(--fs-small);
+}
+
+ul {
+	margin: 0;
+	padding-left: var(--sp-4);
+}
+
+pre {
+	margin: 0;
+	font-family: inherit;
+}
+
+a {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+a:hover {
+	color: var(--accent-hover);
+	text-decoration: underline;
+}
+
+/* Header */
+
+.header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--sp-4);
+	padding: var(--sp-3) var(--sp-5);
+	background: var(--bg);
+	border-bottom: 1px solid var(--border);
+	position: sticky;
+	top: 0;
+	z-index: 10;
+}
+
+.header.degraded {
+	border-bottom-color: var(--danger);
+}
+
+.header-identity {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-2);
+}
+
+.product {
+	font-family: var(--font-display);
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--text-bright);
+}
+
+.header-target {
+	color: var(--text-muted);
+	font-size: var(--fs-small);
+}
+
+/* The mode chip and the connection dot are Scratch components, so they need
+   no colour rules here. The link text alongside the dot does. */
+.link-state {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-1);
+	font-size: var(--fs-micro);
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.link-live {
+	color: var(--signal);
+}
+
+.link-down {
+	color: var(--danger);
+}
+
+.header-stats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--sp-5);
+	margin-left: auto;
+}
+
+.stat-label {
+	font-size: var(--fs-micro);
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: var(--text-muted);
+}
+
+.stat-value {
+	font-size: var(--fs-lg);
+	color: var(--text-bright);
+	font-variant-numeric: tabular-nums;
+}
+
+.stat-note {
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
+}
+
+.stat.absent .stat-value {
+	color: var(--text-disabled);
+}
+
+/* Layout */
+
+main {
+	display: grid;
+	gap: var(--sp-4);
+	padding: var(--sp-4) var(--sp-5) var(--sp-7);
+}
+
+/* Panels take the wireframe treatment: a hairline box, square by the system's
+   radius rule, with a registration mark at opposite corners. */
+.panel {
+	position: relative;
+	background: var(--bg-surface);
+	border: 1px solid var(--border);
+	border-radius: var(--r-base);
+	padding: var(--pad-card);
+	display: grid;
+	gap: var(--sp-3);
+}
+
+.panel::before,
+.panel::after {
+	content: "";
+	position: absolute;
+	width: 6px;
+	height: 6px;
+	border-color: var(--accent-dim);
+	border-style: solid;
+	pointer-events: none;
+}
+
+.panel::before {
+	top: -1px;
+	left: -1px;
+	border-width: 1px 0 0 1px;
+}
+
+.panel::after {
+	right: -1px;
+	bottom: -1px;
+	border-width: 0 1px 1px 0;
+}
+
+.panel-head {
+	display: grid;
+	gap: var(--sp-1);
+	max-width: 110ch;
+}
+
+.error-bar {
+	position: relative;
+	z-index: 1;
+	padding: var(--sp-3) var(--sp-5);
+	background: var(--danger-glow);
+	border-bottom: 1px solid var(--danger);
+	color: var(--text-bright);
+}
+
+.fatal {
+	position: relative;
+	z-index: 2;
+	padding: var(--sp-3) var(--sp-5);
+	background: var(--danger);
+	color: var(--bg-deep);
+}
+
+.hidden {
+	display: none;
+}
+
+.empty,
+.notice {
+	color: var(--text-muted);
+	font-size: var(--fs-small);
+	padding: var(--sp-2) 0;
+}
+
+/* Gauges */
+
+.gauges {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	gap: var(--sp-3);
+}
+
+.gauge-card {
+	display: grid;
+	gap: var(--sp-1);
+	background: var(--bg-elevated);
+	border: 1px solid var(--border-light);
+	padding: var(--sp-2);
+}
+
+.gauge-hint,
+.gauge-missing {
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
+}
+
+.gauge-missing {
+	color: var(--accent);
+}
+
+.gauge-absent perf-graph {
+	opacity: 0.25;
+}
+
+/* Timeline */
+
+.timeline-host {
+	display: block;
+}
+
+.timeline {
+	display: block;
+	height: 280px;
+	border: 1px solid var(--border);
+}
+
+.tooltip {
+	display: grid;
+	gap: 3px;
+	min-width: 260px;
+	font-size: var(--fs-small);
+}
+
+.tooltip-title {
+	font-family: var(--font-display);
+	color: var(--text-bright);
+}
+
+.tooltip-row {
+	display: flex;
+	justify-content: space-between;
+	gap: var(--sp-4);
+}
+
+.tooltip-label,
+.tooltip-foot {
+	color: var(--text-muted);
+}
+
+.tooltip-value {
+	font-variant-numeric: tabular-nums;
+}
+
+.tooltip-foot {
+	font-size: var(--fs-tiny);
+	padding-top: var(--sp-1);
+}
+
+/* Prefix cache */
+
+.cache-panel {
+	display: grid;
+	grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+	gap: var(--sp-4);
+	align-items: start;
+}
+
+@media (max-width: 1100px) {
+	.cache-panel {
+		grid-template-columns: 1fr;
+	}
+}
+
+.cache-left,
+.cache-right {
+	display: grid;
+	gap: var(--sp-2);
+	min-width: 0;
+}
+
+.cache-summary {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+	gap: var(--sp-1) var(--sp-5);
+}
+
+.field {
+	display: flex;
+	align-items: baseline;
+	gap: var(--sp-2);
+	font-size: var(--fs-small);
+}
+
+.field-label {
+	color: var(--text-muted);
+	flex: 1;
+}
+
+.field-value {
+	color: var(--text-bright);
+	font-variant-numeric: tabular-nums;
+}
+
+/* Confidence is a <scratch-badge>, so its chip geometry and colour come from
+   the design language. Only its placement is this stylesheet's business. */
+.meter-absent {
+	opacity: 0.4;
+}
+
+.meter-note {
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
+}
+
+.cache-graph {
+	display: block;
+	height: 420px;
+	border: 1px solid var(--border);
+}
+
+.section-title {
+	display: grid;
+	gap: 2px;
+	padding-top: var(--sp-2);
+}
+
+.section-note {
+	font-size: var(--fs-tiny);
+}
+
+.lru-row {
+	display: grid;
+	grid-template-columns: 34px 1fr;
+	gap: var(--sp-2);
+	padding: var(--sp-2) 0;
+	border-bottom: 1px dashed var(--border-dashed);
+	font-size: var(--fs-small);
+}
+
+.lru-rank {
+	color: var(--accent);
+	font-variant-numeric: tabular-nums;
+}
+
+.lru-preview,
+.eviction-preview {
+	overflow-wrap: anywhere;
+}
+
+.lru-meta {
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
+}
+
+.eviction-row {
+	display: grid;
+	gap: var(--sp-1);
+	padding: var(--sp-2) 0;
+	border-bottom: 1px dashed var(--border-dashed);
+}
+
+.eviction-head {
+	display: flex;
+	align-items: center;
+	gap: var(--sp-2);
+	flex-wrap: wrap;
+}
+
+.eviction-when {
+	color: var(--text-muted);
+	margin-left: auto;
+	font-size: var(--fs-tiny);
+	font-variant-numeric: tabular-nums;
+}
+
+.reason {
+	font-size: var(--fs-micro);
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+
+.reason-capacity_pressure,
+.reason-cache_flush_or_bulk_eviction {
+	color: var(--danger);
+}
+
+.reason-server_restart,
+.reason-contention_with_running_batch {
+	color: var(--accent);
+}
+
+.eviction-body {
+	font-size: var(--fs-small);
+}
+
+.eviction-preview {
+	font-size: var(--fs-small);
+	color: var(--text-muted);
+}
+
+.evidence {
+	font-size: var(--fs-tiny);
+	color: var(--text-muted);
+}
+
+/* Tables and feed */
+
+/* Both lists are unbounded feeds. Capping them keeps the page a screen or two
+   tall instead of one long scroll that buries the panels under it. */
+.requests-table,
+.feed {
+	display: block;
+	max-height: 560px;
+	overflow: auto;
+}
+
+.feed-message {
+	display: grid;
+	gap: var(--sp-1);
+}
